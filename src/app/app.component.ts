@@ -1,15 +1,14 @@
 import { Component } from '@angular/core';
-
-import { WelcomeComponent } from './components/welcome.component';
+import { NewsComponent } from './areas/news/news.component';
 
 @Component({
   selector: 'app-root',
   template: `
-    <main class="container mx-auto">
-      <app-welcome />
-    </main>
+    <section class="container mx-auto">
+      <app-news />
+    </section>
   `,
   styles: [],
-  imports: [WelcomeComponent],
+  imports: [NewsComponent], // put this in the bundle of code you send to the browser.
 })
 export class AppComponent {}
