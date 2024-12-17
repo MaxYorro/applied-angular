@@ -1,36 +1,32 @@
-import { DatePipe, NgFor } from '@angular/common';
-import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
-
-type NewArticle = {
-  id: string;
-  title: string;
-  shortDescription: string;
-  link: string;
-  datePublished: string;
-};
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  resource,
+  signal,
+} from '@angular/core';
+import { NewsArticle } from '../types';
+import { NewsItemComponent } from './news-item/news-item.component';
 
 @Component({
   selector: 'app-news-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe],
+  imports: [NewsItemComponent],
   template: `
+    @if (readArticleCount() !== 0) {
+      <div>
+        <p>You have read {{ readArticleCount() }} articles!</p>
+      </div>
+    } @else {
+      <p>You are really behind on your reading! Read some stuff.</p>
+    }
     <section>
-      @for (article of articles(); track article.id) {
-        <article class="card bg-base-100  shadow-xl">
-          <div class="card-body">
-            <h2 class="card-title">{{ article.title }}</h2>
-            <p>{{ article.shortDescription }}</p>
-            <p>
-              <small
-                >{{ article.datePublished | date: 'medium' }}This article was
-                posted 2 days ago.</small
-              >
-            </p>
-            <div class="card-actions justify-end">
-              <a class="btn btn-primary" href="">Read All About Angular 19</a>
-            </div>
-          </div>
-        </article>
+      @for (article of articles.value(); track article.id) {
+        <!-- display the app-news-item -->
+        <app-news-item
+          (linkRead)="readTheArticle($event)"
+          [articleToDisplay]="article"
+        />
       } @empty {
         <p>No news! Check Back Later!</p>
       }
@@ -40,14 +36,17 @@ type NewArticle = {
 })
 export class NewsListComponent {
   // data in a component is a Signal, or .................................. an observable
+  preferredHeader = signal('This is a header from a signal');
 
-  articles = signal<NewArticle[]>([
-    {
-      id: '1',
-      title: 'Lunch time',
-      shortDescription: 'Time for Lunch',
-      link: 'https://blahblahblbhal',
-      datePublished: '2024-12-16T17:32:12.556Z',
-    },
-  ]);
+  articles = resource<NewsArticle[], unknown>({
+    loader: () =>
+      fetch('http://fake-news.some-fake-server.com/news-feed').then((r) =>
+        r.json(),
+      ),
+  });
+  readArticles = signal<NewsArticle[]>([]);
+  readArticleCount = computed(() => this.readArticles().length);
+  readTheArticle(article: NewsArticle) {
+    this.readArticles.update((a) => [article, ...a]);
+  }
 }
