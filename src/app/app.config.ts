@@ -1,12 +1,25 @@
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import {
+  PreloadAllModules,
+  provideRouter,
+  withPreloading,
+  withViewTransitions,
+} from '@angular/router';
 
 import { routes } from './app.routes';
+import { provideHttpClient } from '@angular/common/http';
+import { FeaturesService } from '@shared';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     //provideExperimentalZonelessChangeDetection(),
-    provideRouter(routes),
+    FeaturesService,
+    provideHttpClient(), // TODO: Talk about this.
+    provideRouter(
+      routes,
+      withViewTransitions(),
+      withPreloading(PreloadAllModules),
+    ),
   ],
 };

@@ -2,12 +2,15 @@ import { computed } from '@angular/core';
 import {
   patchState,
   signalStore,
+  watchState,
   withComputed,
+  withHooks,
   withMethods,
   withState,
 } from '@ngrx/signals';
 export const BY_VALUES = [1, 3, 5] as const;
-type ByValues = (typeof BY_VALUES)[number];
+type ByValues = (typeof BY_VALUES)[number]; // createa  type like 1 | 3 | 5
+
 type CounterState = {
   current: number;
   by: ByValues;
@@ -29,6 +32,20 @@ export const CounterStore = signalStore(
       decrementDisabled: computed(() => store.current() - store.by() < 0),
       fizzBuzz: computed(() => fizzBuzzIfy(store.current())),
     };
+  }),
+
+  withHooks({
+    onInit(store) {
+      const saved = localStorage.getItem('counter'); // json | null
+      if (saved !== null) {
+        const state = JSON.parse(saved) as unknown as CounterState; // I know you don't know what this is (unknown) I know it is CounterState
+        patchState(store, state);
+      }
+      watchState(store, (state) => {
+        const savedState = JSON.stringify(state);
+        localStorage.setItem('counter', savedState);
+      });
+    },
   }),
 );
 
